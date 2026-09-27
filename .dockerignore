@@ -1,0 +1,15 @@
+.git
+.github
+.venv
+venv
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+**/*.pyc
+.env
+.env.*
+SampleModels
+Converter
+tests
+dist
+build
