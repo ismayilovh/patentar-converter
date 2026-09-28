@@ -1,7 +1,8 @@
 from datetime import UTC, datetime
 from uuid import UUID
 
-from fastapi.testclient import TestClient
+import httpx
+import pytest
 
 from patentar_api.app import create_app
 from patentar_api.config import Settings
@@ -58,24 +59,27 @@ class FakeRepository:
         )
 
 
-def client(row: CatalogRow | None = None) -> TestClient:
+def app_client(row: CatalogRow | None = None) -> httpx.AsyncClient:
     settings = Settings(
         supabase_url="https://project.supabase.co",
         supabase_publishable_key="sb_publishable_test",
         public_base_url="https://models.example.org",
     )
-    return TestClient(create_app(settings=settings, repository=FakeRepository(row)))
+    app = create_app(settings=settings, repository=FakeRepository(row))
+    return httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test")
 
 
-def test_liveness_and_readiness() -> None:
-    with client() as test_client:
-        assert test_client.get("/health/live").json() == {"status": "ok"}
-        assert test_client.get("/health/ready").json() == {"status": "ready"}
+@pytest.mark.anyio
+async def test_liveness_and_readiness() -> None:
+    async with app_client() as client:
+        assert (await client.get("/health/live")).json() == {"status": "ok"}
+        assert (await client.get("/health/ready")).json() == {"status": "ready"}
 
 
-def test_lists_models_with_immutable_download_url() -> None:
-    with client(catalog_row()) as test_client:
-        response = test_client.get("/v1/models")
+@pytest.mark.anyio
+async def test_lists_models_with_immutable_download_url() -> None:
+    async with app_client(catalog_row()) as client:
+        response = await client.get("/v1/models")
 
     assert response.status_code == 200
     body = response.json()
@@ -85,9 +89,10 @@ def test_lists_models_with_immutable_download_url() -> None:
     )
 
 
-def test_current_model_redirect_is_short_lived() -> None:
-    with client(catalog_row()) as test_client:
-        response = test_client.get("/m/sample-bearing", follow_redirects=False)
+@pytest.mark.anyio
+async def test_current_model_redirect_is_short_lived() -> None:
+    async with app_client(catalog_row()) as client:
+        response = await client.get("/m/sample-bearing")
 
     assert response.status_code == 307
     assert response.headers["location"].endswith(
@@ -96,25 +101,26 @@ def test_current_model_redirect_is_short_lived() -> None:
     assert response.headers["cache-control"] == "public, max-age=60"
 
 
-def test_version_redirect_is_immutable() -> None:
-    with client(catalog_row()) as test_client:
-        response = test_client.get(
-            f"/m/sample-bearing/v/{VERSION_ID}", follow_redirects=False
-        )
+@pytest.mark.anyio
+async def test_version_redirect_is_immutable() -> None:
+    async with app_client(catalog_row()) as client:
+        response = await client.get(f"/m/sample-bearing/v/{VERSION_ID}")
 
     assert response.status_code == 307
     assert "immutable" in response.headers["cache-control"]
 
 
-def test_unpublished_or_unknown_model_is_not_found() -> None:
-    with client() as test_client:
-        response = test_client.get("/v1/models/not-published")
+@pytest.mark.anyio
+async def test_unpublished_or_unknown_model_is_not_found() -> None:
+    async with app_client() as client:
+        response = await client.get("/v1/models/not-published")
 
     assert response.status_code == 404
 
 
-def test_slug_rejects_unsafe_characters() -> None:
-    with client(catalog_row()) as test_client:
-        response = test_client.get("/v1/models/NOT_VALID")
+@pytest.mark.anyio
+async def test_slug_rejects_unsafe_characters() -> None:
+    async with app_client(catalog_row()) as client:
+        response = await client.get("/v1/models/NOT_VALID")
 
     assert response.status_code == 422

@@ -25,6 +25,7 @@ dev = [
 
 [project.scripts]
 patentar-api = "patentar_api.__main__:main"
+patentar-verify-api = "patentar_api.verify:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["api/patentar_api"]

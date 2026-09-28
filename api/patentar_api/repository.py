@@ -32,7 +32,12 @@ class ModelRepository(Protocol):
 class SupabaseRepository:
     """Read the public catalog through Supabase's PostgREST Data API."""
 
-    def __init__(self, settings: Settings) -> None:
+    def __init__(
+        self,
+        settings: Settings,
+        *,
+        transport: httpx.AsyncBaseTransport | None = None,
+    ) -> None:
         self._settings = settings
         self._client: httpx.AsyncClient | None = None
 
@@ -45,6 +50,7 @@ class SupabaseRepository:
                     "apikey": settings.supabase_publishable_key.strip(),
                 },
                 timeout=settings.supabase_timeout_seconds,
+                transport=transport,
             )
 
     async def close(self) -> None:

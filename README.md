@@ -53,6 +53,18 @@ The service listens on port `8080` by default. Configuration is loaded from envi
 
 Never commit `.env` or place a Supabase secret key in this service.
 
+After starting the service, run the installed contract check:
+
+```powershell
+patentar-verify-api --base-url http://127.0.0.1:8080
+```
+
+After a model is published, include its slug to verify both metadata and the stable GLB redirect:
+
+```powershell
+patentar-verify-api --base-url http://127.0.0.1:8080 --slug sample-bearing
+```
+
 ## Supabase setup (manual checkpoint)
 
 The migration at `supabase/migrations/202609280001_model_catalog.sql` creates:
@@ -89,6 +101,8 @@ docker run --rm -p 8080:8080 --env-file .env patentar-model-api
 ```
 
 It is compatible with Cloud Run: the process listens on `0.0.0.0` and uses the injected `PORT`. Deploy the API only after the Supabase manual checkpoint is complete, then set the four environment variables in the Cloud Run service. Converter workers should remain separate jobs because they need large native runtimes and very different CPU/memory limits.
+
+The manual GitHub Actions deployment workflow and its required Google Cloud/GitHub configuration are documented in [`deploy/cloud-run.md`](deploy/cloud-run.md). The workflow uses Workload Identity Federation and does not store a downloadable Google service-account key.
 
 ## Repository boundaries
 
