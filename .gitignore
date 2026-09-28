@@ -22,6 +22,7 @@ venv/
 .vscode/
 .DS_Store
 Thumbs.db
+gha-creds-*.json
 
 # Converter outputs and local test data
 out.glb
@@ -31,4 +32,3 @@ Converter/test_models/
 
 # Large research/reference assets are stored outside Git
 SampleModels/
-

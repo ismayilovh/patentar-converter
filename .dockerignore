@@ -13,3 +13,4 @@ Converter
 tests
 dist
 build
+gha-creds-*.json
