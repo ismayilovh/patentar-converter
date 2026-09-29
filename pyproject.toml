@@ -3,17 +3,12 @@ requires = ["hatchling>=1.27,<2"]
 build-backend = "hatchling.build"
 
 [project]
-name = "patentar-model-api"
+name = "patentar-converter"
 version = "0.1.0"
-description = "Read-only model catalog and stable GLB resolver for 3DPatentAR"
+description = "Convert supported CAD and mesh formats into validated GLB files"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = [
-    "fastapi>=0.115,<1",
-    "httpx>=0.27,<1",
-    "pydantic-settings>=2.5,<3",
-    "uvicorn>=0.30,<1",
-]
+license = { file = "LICENSE" }
 
 [project.optional-dependencies]
 dev = [
@@ -24,21 +19,19 @@ dev = [
 ]
 
 [project.scripts]
-patentar-api = "patentar_api.__main__:main"
-patentar-verify-api = "patentar_api.verify:main"
+patentar-convert = "patentar_converter.cli:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["api/patentar_api"]
+packages = ["src/patentar_converter"]
 
 [tool.pytest.ini_options]
-addopts = "--strict-markers --cov=patentar_api --cov-report=term-missing"
+addopts = "--strict-markers --cov=patentar_converter --cov-report=term-missing"
 testpaths = ["tests"]
 
 [tool.ruff]
 line-length = 100
 target-version = "py312"
-src = ["api"]
-extend-exclude = ["Converter", "SampleModels"]
+src = ["src", "tests"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
