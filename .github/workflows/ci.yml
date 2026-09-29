@@ -1,4 +1,4 @@
-name: API CI
+name: Converter CI
 
 on:
   push:
@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 jobs:
-  test:
+  python:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -33,12 +33,3 @@ jobs:
 
       - name: Build package
         run: python -m build
-
-  container:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v7
-
-      - name: Build API image
-        run: docker build --file api/Dockerfile --tag patentar-model-api:test .
