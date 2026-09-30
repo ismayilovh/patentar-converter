@@ -35,6 +35,23 @@ docker run --rm \
 
 Versioned images are published to GitHub Container Registry. The model worker should pin a release digest rather than use `latest`.
 
+## Release
+
+Merge the release commit into `main` before creating its annotated version tag.
+The tag must equal `v` followed by the version in `pyproject.toml`; the publish
+workflow rejects mismatches.
+
+```bash
+git switch main
+git pull --ff-only
+git tag -a v0.1.1 -m "release: converter v0.1.1"
+git push origin v0.1.1
+```
+
+After the workflow finishes, configure the model worker with the published
+`ghcr.io/ismayilovh/patentar-converter@sha256:...` digest rather than a mutable
+tag.
+
 ## Development
 
 The unit tests do not import Blender or FreeCAD; backend imports are lazy so the orchestration contract can be tested in a normal Python environment.
